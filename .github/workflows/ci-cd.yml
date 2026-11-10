@@ -13,27 +13,25 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout
+        uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
+      - name: Configurar ambiente (GitHub Pages)
+        uses: actions/configure-pages@v6
 
-      - name: Instalar dependências
-        run: npm install --no-save html-validate@9
+      # Site estatico (HTML + CSS): nao ha dependencias para instalar.
 
-      - name: Validar HTML
-        run: npx html-validate index.html
-
-      - name: Verificar arquivos referenciados (src/href)
+      - name: Verificar arquivos referenciados no index.html
         run: |
+          test -f index.html
           missing=0
           for f in $(grep -oE '(src|href)="[^"#:]+"' index.html | cut -d'"' -f2 | sort -u); do
-            [ -f "$f" ] || { echo "Arquivo não encontrado: $f"; missing=1; }
+            [ -f "$f" ] || { echo "Arquivo nao encontrado: $f"; missing=1; }
           done
           exit $missing
 
-      - uses: actions/upload-pages-artifact@v5
+      - name: Empacotar site
+        uses: actions/upload-pages-artifact@v5
         with:
           path: .
 
@@ -48,5 +46,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - id: deploy
+      - name: Deploy no GitHub Pages
+        id: deploy
         uses: actions/deploy-pages@v5
